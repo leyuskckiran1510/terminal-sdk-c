@@ -6,22 +6,6 @@
 #include <curl/curl.h>
 
 
-
-typedef enum{
-    SUB_NONE=0,
-    SUB_ALLOWED,
-    SUB_REQUIRED,
-    SUB_COUNT,
-}Subscription_E;
-
-static char subscription_map[SUB_COUNT][32] = {
-    [SUB_NONE] = "none",
-    [SUB_ALLOWED]="allowed",
-    [SUB_REQUIRED]="required"
-};
-
-
-
 typedef enum _ENV_E{
     ENV_DEV=0,
     ENV_PROD,
@@ -41,21 +25,30 @@ typedef struct _ProductVariant{
     double price;
 }ProductVariant;
 
+
+typedef struct _ProductTag{
+    int featured;
+    int market_eu;
+    int market_na;
+    char app[32];
+    char color[8];
+} ProductTag;
+
 typedef struct _Product{
     char id[32];
+    char subscription[32];
     char name[64];
+    ProductTag tags;
+    ProductVariant *variants;
     char *description;
     uint order;
-    Subscription_E subscription;
-    ProductVariant *variants;
-    char **tags;
 } Product;
 
 
 // RI -> requests interface
 typedef struct _ProductRI{
     Product*(*list)(void);
-    Product (*get)(int id);
+    Product (*get)(char * id);
 } ProductRI;
 
 typedef struct _Terminal{

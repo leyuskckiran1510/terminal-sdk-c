@@ -26,17 +26,28 @@ void init_terminal(char *bearer_token,ENV_E environment){
     headers = curl_slist_append(headers, auth_header);
     curl_easy_setopt(sdk_terminal.curl, CURLOPT_HTTPHEADER, headers);
     sdk_terminal.product.list = product_list;
+    sdk_terminal.product.get = product_get;
     atexit(clean_up);
 }
 
-
-int main() {
-    init_terminal(getenv("TOKEN"),ENV_DEV);
+void products_list_demo(){
     Product *products = sdk_terminal.product.list();
     int count =0;
     while(count<100){
+        if(PRODUCT_IS_EOF(products[count])) break;
         printf("name:= %s\n",products[count].name);
         count++;
     }
+}
+
+int main() {
+    init_terminal(getenv("TOKEN"),ENV_DEV);
+    Product prod = sdk_terminal.product.get("prd_01JD0E7PD4H3XDZA5P5VXSDPQC");
+    printf("name:= %s\n",prod.name);
+    if(prod.variants){
+        printf("id:=%s , name:= %s, price:= %lf \n",prod.variants[0].id,prod.variants[0].name,prod.variants[0].price);
+    }
+    printf("tag items:- %s %s %d",prod.tags.app,prod.tags.color,prod.tags.featured);
+    
     return 0;
 }
