@@ -1,13 +1,19 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra  
+FLAGS = $(shell pkg-config --cflags --libs libcurl)
+LDFLAGS = $(shell pkg-config --libs libcurl)
 
-SRC = tests/main.c src/term_sdk.c
+SRC =  tests/main.c src/term_sdk.c
 HEADERS = src/term_sdk.h
 
 TARGET = a.out
 
-$(TARGET): $(SRC) $(HEADERS)
-	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
+compile: $(SRC) $(HEADERS)
+	$(CC) $(CFLAGS) $(FLAGS) $(SRC) -o $(TARGET)  $(LDFLAGS)
+
+run:
+	@echo "Executing..." $(TARGET)
+	@$(shell cat .env) ./$(TARGET)
 
 .PHONY: clean
 clean:

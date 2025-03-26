@@ -21,3 +21,20 @@ int main(){
 ### notes
 - [ApiDoc](https://www.terminal.shop/api)
 - [ApiRendredSwagger](./endpoint_docs/api_docs.html)
+- ```c
+/*
+list -> get
+get -> get
+
+update -> put
+add -> put
+set -> put
+
+create -> post
+collect -> post
+convert -> post
+
+delete -> delete
+cancel -> delete
+*/
+```
