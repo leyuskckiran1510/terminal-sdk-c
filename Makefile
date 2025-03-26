@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra
 FLAGS = $(shell pkg-config --cflags --libs libcurl)
 LDFLAGS = $(shell pkg-config --libs libcurl)
 
-SRC =  tests/main.c src/term_sdk.c
+SRC =  tests/cJSON.c tests/main.c src/term_sdk.c
 HEADERS = src/term_sdk.h
 
 TARGET = a.out

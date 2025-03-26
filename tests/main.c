@@ -32,6 +32,11 @@ void init_terminal(char *bearer_token,ENV_E environment){
 
 int main() {
     init_terminal(getenv("TOKEN"),ENV_DEV);
-    sdk_terminal.product.list();
+    Product *products = sdk_terminal.product.list();
+    int count =0;
+    while(count<100){
+        printf("name:= %s\n",products[count].name);
+        count++;
+    }
     return 0;
 }
