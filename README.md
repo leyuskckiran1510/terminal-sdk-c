@@ -6,15 +6,14 @@
 ```c
 #define TERM_SDK_IMPL
 #include "term_sdk.h"
-
-int main(){
-    Terminal client = {
-            .bearer_token=get_envrion("TOKEN"),
-            .environment="dev",
-        };
-    Product product[100] = client.product.list();
-    print(Product,product);
+// sdk_terminal is already defined,
+// it is a gloabl vairbale
+int main() {
+    init_terminal(getenv("TOKEN"),ENV_DEV);
+    skd_terminal.product.list();
+    return 0;
 }
+
 ```
 
 

@@ -10,7 +10,7 @@ size_t output(void *data,size_t size,size_t nmemb,void* _){
 }
 
 Product * product_list(){
-    build_url(client.environment,url_product());
-    requests_get(client.curl, URL_BUILD_BUFFER, output);
+    build_url(sdk_terminal.environment,url_product());
+    requests_get(sdk_terminal.curl, URL_BUILD_BUFFER, output);
     return NULL;
 }

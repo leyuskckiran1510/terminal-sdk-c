@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <curl/curl.h>
 
+
+
 typedef enum{
     SUB_NONE=0,
     SUB_ALLOWED,
@@ -64,7 +66,7 @@ typedef struct _Terminal{
 }Terminal;
 
 
-static Terminal client;
+static Terminal sdk_terminal;
 
 
 #endif
