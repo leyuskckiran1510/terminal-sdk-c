@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra  
+CFLAGS = -Wall -Wextra  -ggdb
 FLAGS = $(shell pkg-config --cflags --libs libcurl)
 LDFLAGS = $(shell pkg-config --libs libcurl)
 
@@ -14,6 +14,10 @@ compile: $(SRC) $(HEADERS)
 run:
 	@echo "Executing..." $(TARGET)
 	@$(shell cat .env) ./$(TARGET)
+
+py:
+	python -i ./respone_run.py
+
 
 .PHONY: clean
 clean:

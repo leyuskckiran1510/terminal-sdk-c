@@ -8,10 +8,10 @@
 
 #define PRODUCT_IS_EOF(product) strcmp(product.id,"__end__")==0
 
-void parse_varients(cJSON *item,ProductVariant *vars,int count){
+void parse_varients(cJSON *_item,ProductVariant *vars,int count){
     for (int i = 0; i < count ; i++) {
         ProductVariant *var = &vars[i];
-        cJSON *item = cJSON_GetArrayItem(item, i);
+        cJSON *item = cJSON_GetArrayItem(_item, i);
         if (!item) continue;
         cJSON *id = cJSON_GetObjectItem(item, "id");
         cJSON *name = cJSON_GetObjectItem(item, "name");
@@ -119,7 +119,7 @@ Product * product_list(){
     memset(URL_BUILD_BUFFER,0,sizeof(URL_BUILD_BUFFER));
     sprintf(URL_BUILD_BUFFER,"https://%s%s",env_map[sdk_terminal.environment],url_product());
     curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, products);
-    requests_get(sdk_terminal.curl, URL_BUILD_BUFFER, product_list_callback);
+    requests_get(URL_BUILD_BUFFER, product_list_callback);
     return products;
 }
 
@@ -145,6 +145,6 @@ Product product_get(char *id){
     memset(URL_BUILD_BUFFER,0,sizeof(URL_BUILD_BUFFER));
     sprintf(URL_BUILD_BUFFER,"https://%s%s/%s",env_map[sdk_terminal.environment],url_product(),id);
     curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, &product);
-    requests_get(sdk_terminal.curl, URL_BUILD_BUFFER, product_get_callback);
+    requests_get(URL_BUILD_BUFFER, product_get_callback);
     return product;
 }

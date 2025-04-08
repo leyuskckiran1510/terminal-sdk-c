@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <curl/curl.h>
 
+#define def_struct(x,y) typedef struct _##x y x;
+#define def_enum(x,y) typedef enum _##x y x;
+
+
 
 typedef enum _ENV_E{
     ENV_DEV=0,
@@ -19,22 +23,23 @@ static char env_map[ENV_COUNT][32] = {
 
 typedef size_t (*Writeable)(void *ptr, size_t size, size_t nmemb, void *userdata); 
 
-typedef struct _ProductVariant{
+
+def_struct(ProductVariant,{
     char id[32];
     char name[32];
     double price;
-}ProductVariant;
+})
 
 
-typedef struct _ProductTag{
+def_struct(ProductTag,{
     int featured;
     int market_eu;
     int market_na;
     char app[32];
     char color[8];
-} ProductTag;
+})
 
-typedef struct _Product{
+def_struct(Product,{
     char id[32];
     char subscription[32];
     char name[64];
@@ -42,21 +47,59 @@ typedef struct _Product{
     ProductVariant *variants;
     char *description;
     uint order;
-} Product;
+});
 
 
 // RI -> requests interface
-typedef struct _ProductRI{
+def_struct(ProductRI,{
     Product*(*list)(void);
     Product (*get)(char * id);
-} ProductRI;
+});
 
-typedef struct _Terminal{
+/*
+
+{'data': 
+    {'user': 
+        {
+            'id': 'usr_01JQ87AAF2VXNJC6288E7XSX12',
+            'name': None,
+            'email': None,
+            'fingerprint': None,
+            'stripeCustomerID': 'cus_S0m1XJdaP7oxIw'
+        }
+    }
+}
+
+*/
+
+
+def_struct(Profile ,{
+    char id[32];
+    char email[32];
+    char name[64];
+    char fingerprint[128];
+    char stripeCustomerID[32];
+});
+
+
+
+def_struct(ProfileUpdate,{
+    char name[64];
+    char email[32];
+});
+
+def_struct(ProfileRI,{
+    Profile (*get)();
+    int (*update)(ProfileUpdate);
+});
+
+def_struct(Terminal,{
     char bearer_token[32];
     ENV_E environment;
     CURL *curl;
     ProductRI product;
-}Terminal;
+    ProfileRI profile;
+});
 
 
 static Terminal sdk_terminal;
