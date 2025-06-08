@@ -2,12 +2,13 @@
 #ifndef __SDK_TYPES__
 #define __SDK_TYPES__
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <curl/curl.h>
 
 #define def_struct(x,y) typedef struct _##x y x;
 #define def_enum(x,y) typedef enum _##x y x;
-
+#define print_status(x) printf("[%d] message: %s\n",x.status_code,x.message);
 
 
 typedef enum _ENV_E{
@@ -58,8 +59,8 @@ def_struct(Product,{
 
 // RI -> requests interface
 def_struct(ProductRI,{
-    Product*(*list)(void);
-    Product (*get)(char * id);
+    ResponseStatus (*list) (Product* *output,size_t in_size,size_t *out_size);
+    ResponseStatus (*get)(char * id,Product *output);
 });
 
 /*
@@ -95,8 +96,8 @@ def_struct(ProfileUpdate,{
 });
 
 def_struct(ProfileRI,{
-    Profile (*get)();
-    ResponseStatus (*update)(ProfileUpdate);
+    ResponseStatus (*get)(Profile *output);
+    ResponseStatus (*update)(ProfileUpdate *input,Profile *output);
 });
 
 def_struct(Terminal,{

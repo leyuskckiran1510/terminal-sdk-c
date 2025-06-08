@@ -1,12 +1,19 @@
 #include "constants.h"
 #include "types.h"
 #include "basic_requests.c"
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "cJSON.h"
 
-#define PRODUCT_IS_EOF(product) strcmp(product.id,"__end__")==0
+typedef struct{
+    Product *products;
+    size_t *size;
+    size_t *used;
+    ResponseStatus *status;
+} __internal_product_list_callback_parmas;
+
 
 void parse_varients(cJSON *_item,ProductVariant *vars,int count){
     for (int i = 0; i < count ; i++) {
@@ -33,10 +40,13 @@ void parse_varients(cJSON *_item,ProductVariant *vars,int count){
 void parse_tags(cJSON *tags,ProductTag *tag){
     cJSON *app = cJSON_GetObjectItem(tags, "app");
     if(app)
-        strncpy(tag->app,app->valuestring,strlen(tag->app)-1);
+        strncpy(tag->app,app->valuestring,strlen(app->valuestring)-1);
+
     cJSON *color = cJSON_GetObjectItem(tags, "color");
     if(color)
-        strncpy(tag->color,color->valuestring,strlen(tag->color)-1);
+        strncpy(tag->color,color->valuestring,strlen(color->valuestring)-1);
+    
+
     cJSON *featured = cJSON_GetObjectItem(tags, "featured");
     if(featured)
         tag->featured = featured->valueint;
@@ -53,7 +63,7 @@ void parse_product(cJSON *item,Product *prod){
     cJSON *desc = cJSON_GetObjectItem(item, "description");
     cJSON *order = cJSON_GetObjectItem(item, "order");
     cJSON *subscription = cJSON_GetObjectItem(item, "subscription");
-
+    printf("okay now copying:- %s\n",name->valuestring);
     // variants logic
     cJSON *variants = cJSON_GetObjectItem(item, "variants");
     if (cJSON_IsArray(variants)) {
@@ -85,11 +95,11 @@ void parse_product(cJSON *item,Product *prod){
     }
 }
 
-size_t product_list_callback(void *data,size_t size,size_t nmemb,void* void_prod){
+size_t product_list_callback(void *data,size_t size,size_t nmemb,void* params){
+    __internal_product_list_callback_parmas *_parms = (__internal_product_list_callback_parmas*)params;
     size_t total_size = size * nmemb;
-    Product *products = (Product *)void_prod;
-    (void) size;
-    (void) nmemb;
+    Product *products = _parms->products;
+    
     cJSON *json = cJSON_Parse(data);
     if (!json) {
         free(products);
@@ -97,54 +107,77 @@ size_t product_list_callback(void *data,size_t size,size_t nmemb,void* void_prod
     }
     cJSON *data_obj = cJSON_GetObjectItem(json, "data");
     if (!cJSON_IsArray(data_obj)) {
+        data_obj = cJSON_GetObjectItem(json,"message");
+        strcpy(_parms->status->message,data_obj->valuestring);
         cJSON_Delete(json);
-        free(products);
         return -1;
     }
-    int count = cJSON_GetArraySize(data_obj);
-    for (int i = 0; i < count ; i++) {
-        Product *prod = &products[i];
+    size_t count = (size_t)cJSON_GetArraySize(data_obj);
+    sprintf(_parms->status->message, "Sucessfully fetched %lu products.", count);
+    if(count >*_parms->size){
+        count = *_parms->size;
+    }
+
+    for (size_t i = 0; i < count ; i++) {
         cJSON *item = cJSON_GetArrayItem(data_obj, i);
         if (!item) continue;
-        parse_product(item,prod);
+        parse_product(item,&products[i]);
     }
-    strncpy((products)[count].id,"__end__",10);
+    *_parms->used = count;
     cJSON_Delete(json);
     return total_size;
 }
 
 
-Product * product_list(){
-    Product *products=calloc(100, sizeof(Product));
+ResponseStatus product_list(Product* *output,size_t in_size,size_t* out_size){
+    ResponseStatus status;
+    Product *products= *output;
+    __internal_product_list_callback_parmas prd_ls_c_params = {
+        .products = products,
+        .size = &in_size,
+        .used = out_size,
+        .status = &status,
+    };
     memset(URL_BUILD_BUFFER,0,sizeof(URL_BUILD_BUFFER));
     sprintf(URL_BUILD_BUFFER,"https://%s%s",env_map[sdk_terminal.environment],url_product());
-    curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, products);
-    requests_get(URL_BUILD_BUFFER, product_list_callback);
-    return products;
+    curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, &prd_ls_c_params);
+    status.status_code = requests_get(URL_BUILD_BUFFER, product_list_callback);
+    return status;
 }
 
 size_t product_get_callback(void *data,size_t size,size_t nmemb,void* void_prod){
     size_t total_size = size * nmemb;
+    __internal_product_list_callback_parmas *_parms = (__internal_product_list_callback_parmas*)void_prod;
     cJSON *json = cJSON_Parse(data);
     if (!json) {
         return -1;
     }
     cJSON *item = cJSON_GetObjectItem(json, "data");
     if (!item) {
+        item = cJSON_GetObjectItem(json,"message");
+        strcpy(_parms->status->message,item->valuestring);
         cJSON_Delete(json);
         return -1;
     }
-    parse_product(item,void_prod);
+    strcpy(_parms->status->message,"Sucessfully fetched product.");
+    parse_product(item,_parms->products);
     cJSON_Delete(json);
     return total_size;
 }
 
 
-Product product_get(char *id){
-    Product product={0};
+ResponseStatus product_get(char *id,Product *output){
+    size_t _size_1 = 1;
+    ResponseStatus status;
+    __internal_product_list_callback_parmas prd_ls_c_params = {
+        .products= output,
+        .size = &_size_1,
+        .used = &_size_1,
+        .status = &status,
+    };
     memset(URL_BUILD_BUFFER,0,sizeof(URL_BUILD_BUFFER));
     sprintf(URL_BUILD_BUFFER,"https://%s%s/%s",env_map[sdk_terminal.environment],url_product(),id);
-    curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, &product);
-    requests_get(URL_BUILD_BUFFER, product_get_callback);
-    return product;
+    curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, &prd_ls_c_params);
+    status.status_code = requests_get(URL_BUILD_BUFFER, product_get_callback);
+    return status;
 }
