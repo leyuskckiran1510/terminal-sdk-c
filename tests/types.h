@@ -65,8 +65,10 @@ def_struct(ProductRI,{
 
 /*
 
+Sample profile json
+
 {'data': 
-    {'user': 
+   {'user': 
         {
             'id': 'usr_01JQ87AAF2VXNJC6288E7XSX12',
             'name': None,
@@ -76,10 +78,7 @@ def_struct(ProductRI,{
         }
     }
 }
-
 */
-
-
 def_struct(Profile ,{
     char id[32];
     char email[32];

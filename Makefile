@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS =  -Wall -Wextra  -ggdb -Werror -Wmaybe-uninitialized -Wuninitialized
+CFLAGS =  -Wall -Wextra  -ggdb -Werror -Wuninitialized -Winit-self
 FLAGS = $(shell pkg-config --cflags --libs libcurl)
 LDFLAGS = $(shell pkg-config --libs libcurl)
 

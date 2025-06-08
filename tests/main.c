@@ -35,7 +35,6 @@ void init_terminal(char *bearer_token,ENV_E environment){
 void products_list_demo(){
     Product* products = calloc(sizeof(Product),10); 
     size_t fetched=0;
-    printf("lpa=%p, lpa[1]=%p\n",&products[0].tags.app,&products[1]);
     ResponseStatus status = sdk_terminal.product.list(&products,10,&fetched);
     print_status(status);
     for(size_t i=0;i<fetched;i++){
