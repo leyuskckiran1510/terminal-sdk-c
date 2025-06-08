@@ -55,16 +55,27 @@ void profile_get_demo(){
     
 }
 
-int main() {
-    init_terminal(getenv("TOKEN"),ENV_DEV);
+void profile_put_demo(){
     ProfileUpdate pu = {
-        .name="",
+        .name="kiran raj dhakal",
         .email="tester@teser.com",
     };
-    if(!sdk_terminal.profile.update(pu)){
-        printf("Fix your email");
-    }else{
-        profile_get_demo();
+    ResponseStatus status = sdk_terminal.profile.update(pu); 
+    printf("msg: %s; code: %u\n",status.message,status.status_code);
+    if(status.status_code!=200){
+        printf("Fix your email\n");
+        return;
     }
-    return 0;
+    profile_get_demo();
+}
+
+int main() {
+    char *token = getenv("TOKEN");
+    if(token==NULL){
+        fprintf(stderr,"Must Provide TOKEN of term-cofee\n"
+                "\tTOKEN=your_token ./<executable>\n");
+        exit(1);
+    }
+    init_terminal(token,ENV_DEV);
+    
 }

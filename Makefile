@@ -11,9 +11,13 @@ TARGET = a.out
 compile: $(SRC) $(HEADERS)
 	$(CC) $(CFLAGS) $(FLAGS) $(SRC) -o $(TARGET)  $(LDFLAGS)
 
-run:
+run: $(SRC) $(TARGET)
 	@echo "Executing..." $(TARGET)
 	@$(shell cat .env) ./$(TARGET)
+
+gf:
+	@$(shell cat .env) gf2 ./$(TARGET)
+
 
 py:
 	python -i ./respone_run.py

@@ -24,6 +24,12 @@ static char env_map[ENV_COUNT][32] = {
 typedef size_t (*Writeable)(void *ptr, size_t size, size_t nmemb, void *userdata); 
 
 
+def_struct(ResponseStatus,{
+    char message[64];
+    uint status_code;
+});
+
+
 def_struct(ProductVariant,{
     char id[32];
     char name[32];
@@ -90,7 +96,7 @@ def_struct(ProfileUpdate,{
 
 def_struct(ProfileRI,{
     Profile (*get)();
-    int (*update)(ProfileUpdate);
+    ResponseStatus (*update)(ProfileUpdate);
 });
 
 def_struct(Terminal,{
