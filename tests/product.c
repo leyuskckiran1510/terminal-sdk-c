@@ -24,10 +24,10 @@ void parse_varients(cJSON *_item,ProductVariant *vars,int count){
         cJSON *name = cJSON_GetObjectItem(item, "name");
         cJSON *price = cJSON_GetObjectItem(item, "price");
         if(id){
-            strncpy(var->id,id->valuestring, strlen(id->valuestring));
+            strncpy(var->id,id->valuestring,sizeof(var->id));
         }
         if(name){
-            strncpy(var->name,name->valuestring, strlen(name->valuestring));
+            strncpy(var->name,name->valuestring, sizeof(var->name));
         }
         if(price){
             var->price = price->valuedouble;
@@ -40,11 +40,11 @@ void parse_varients(cJSON *_item,ProductVariant *vars,int count){
 void parse_tags(cJSON *tags,ProductTag *tag){
     cJSON *app = cJSON_GetObjectItem(tags, "app");
     if(app)
-        strncpy(tag->app,app->valuestring,strlen(app->valuestring)-1);
+        strncpy(tag->app,app->valuestring,sizeof(tag->app)-1);
 
     cJSON *color = cJSON_GetObjectItem(tags, "color");
     if(color)
-        strncpy(tag->color,color->valuestring,strlen(color->valuestring)-1);
+        strncpy(tag->color,color->valuestring,sizeof(tag->color)-1);
     
 
     cJSON *featured = cJSON_GetObjectItem(tags, "featured");
@@ -63,7 +63,6 @@ void parse_product(cJSON *item,Product *prod){
     cJSON *desc = cJSON_GetObjectItem(item, "description");
     cJSON *order = cJSON_GetObjectItem(item, "order");
     cJSON *subscription = cJSON_GetObjectItem(item, "subscription");
-    printf("okay now copying:- %s\n",name->valuestring);
     // variants logic
     cJSON *variants = cJSON_GetObjectItem(item, "variants");
     if (cJSON_IsArray(variants)) {

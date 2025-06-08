@@ -17,7 +17,7 @@ void parse_profile(cJSON *user,void *profile){
     json_item(user,email)
     json_item(user,fingerprint)
     json_item(user,stripeCustomerID)
-    #define copy_if(X) if(X && X->valuestring != NULL) strncpy(__pp->X,X->valuestring, strlen(X->valuestring));
+    #define copy_if(X) if(X && X->valuestring != NULL) strncpy(__pp->X,X->valuestring, sizeof(__pp->X)-1);
     copy_if(id)
     copy_if(name)
     copy_if(email)
@@ -27,7 +27,13 @@ void parse_profile(cJSON *user,void *profile){
 }
 
 
-size_t profile_get_callback(void *data,size_t size,size_t nmemb,void* void_prod){
+def_struct(__internal_profile_callback_parms, {
+    Profile *profile;
+    ResponseStatus *status;
+});
+
+size_t profile_get_callback(void *data,size_t size,size_t nmemb,void* parms){
+    __internal_profile_callback_parms *_parms = (__internal_profile_callback_parms *)parms;
     size_t total_size = size * nmemb;
     cJSON *json = cJSON_Parse(data);
     if (!json) {
@@ -35,6 +41,8 @@ size_t profile_get_callback(void *data,size_t size,size_t nmemb,void* void_prod)
     }
     cJSON *item = cJSON_GetObjectItem(json, "data");
     if (!item) {
+        item = cJSON_GetObjectItem(json,"message");
+        strcpy(_parms->status->message,item->valuestring);
         cJSON_Delete(json);
         return -1;
     }
@@ -43,55 +51,40 @@ size_t profile_get_callback(void *data,size_t size,size_t nmemb,void* void_prod)
         cJSON_Delete(user);
         return -1;
     }
-    parse_profile(user,void_prod);
+    strcpy(_parms->status->message,"Sucessfully fetched profile.");
+    parse_profile(user,_parms->profile);
     cJSON_Delete(json);
     return total_size;
 }
 
 
-Profile profile_get(){
-    Profile profile = {0};
+ResponseStatus profile_get(Profile *output){
+    ResponseStatus status;
+    __internal_profile_callback_parms parms = {
+        .profile = output,
+        .status = &status,
+    };
     memset(URL_BUILD_BUFFER,0,sizeof(URL_BUILD_BUFFER));
     sprintf(URL_BUILD_BUFFER,"https://%s%s",env_map[sdk_terminal.environment],url_profile());
-    curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, &profile);
-    requests_get(URL_BUILD_BUFFER, profile_get_callback);
-    return profile;
+    curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, &parms);
+    status.status_code =  requests_get(URL_BUILD_BUFFER, profile_get_callback);
+    return status;
 }
 
-size_t profile_put_callback(void *data, size_t size, size_t nmemb, void *status) {
-    ResponseStatus *_status = (ResponseStatus *)status;
-    size_t total_size = size * nmemb;
-    cJSON *json = cJSON_Parse(data);
-    if (!json) {
-        return -1;
-    }
-    // is sucessfull we recive data
-    cJSON *item = cJSON_GetObjectItem(json, "data");
-    if (item) {
-        cJSON_Delete(json);
-        strcpy(_status->message,"Sucessfully patched profile.");
-        return total_size;
-    }
-    
-    //  on error we recive message
-    item = cJSON_GetObjectItem(json, "message");
-    if (!item) {
-        cJSON_Delete(json);
-        return total_size;
-    }
-    strcpy(_status->message,item->valuestring);
-    return total_size;
-}
 
-ResponseStatus profile_update(ProfileUpdate pu){
-    char *data = calloc(sizeof(pu)*2,1);
+ResponseStatus profile_update(ProfileUpdate pu,Profile *output){
     ResponseStatus status;
+    __internal_profile_callback_parms parms = {
+        .profile = output,
+        .status = &status,
+    };
+    // 32 if for other json strings, name,email and quotes and commans
+    char *data = calloc(1,sizeof(pu)+32);
     sprintf(data,"{\"name\":\"%s\",\"email\":\"%s\"}",pu.name,pu.email);
     memset(URL_BUILD_BUFFER,0,sizeof(URL_BUILD_BUFFER));
     sprintf(URL_BUILD_BUFFER,"https://%s%s",env_map[sdk_terminal.environment],url_profile());
-    curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, &status);
-    status.status_code = requests_put(URL_BUILD_BUFFER,data,profile_put_callback);
-    printf("%s a=%d\n",status.message,status.status_code);
+    curl_easy_setopt(sdk_terminal.curl, CURLOPT_WRITEDATA, &parms);
+    status.status_code = requests_put(URL_BUILD_BUFFER,data,profile_get_callback);
     free(data);
     return status;
 }

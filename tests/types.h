@@ -42,8 +42,8 @@ def_struct(ProductTag,{
     int featured;
     int market_eu;
     int market_na;
-    char app[32];
-    char color[8];
+    char app[64];
+    char color[16];
 })
 
 def_struct(Product,{
@@ -97,7 +97,7 @@ def_struct(ProfileUpdate,{
 
 def_struct(ProfileRI,{
     ResponseStatus (*get)(Profile *output);
-    ResponseStatus (*update)(ProfileUpdate *input,Profile *output);
+    ResponseStatus (*update)(ProfileUpdate input,Profile *output);
 });
 
 def_struct(Terminal,{

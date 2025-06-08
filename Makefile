@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra  -ggdb
+CFLAGS =  -Wall -Wextra  -ggdb -Werror -Wmaybe-uninitialized -Wuninitialized
 FLAGS = $(shell pkg-config --cflags --libs libcurl)
 LDFLAGS = $(shell pkg-config --libs libcurl)
 
